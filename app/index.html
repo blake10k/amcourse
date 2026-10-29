@@ -1,0 +1,279 @@
+"use client";
+import React, { useState } from 'react';
+
+const AngerManagementSystem = () => {
+  const [stage, setStage] = useState('dashboard'); // dashboard, pre_test, videos, post_test, report
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [preTestScore, setPreTestScore] = useState(0);
+  const [postTestScore, setPostTestScore] = useState(0);
+
+  // --- Assessment Data ---
+  
+  const PRE_TEST_QUESTIONS = [
+    { text: "1. (Public) A person cuts in front of you in a long line at the store. You feel a surge of anger. What is the most appropriate response?", options: [ {text: "Demand they go to the back immediately.", score: 1}, {text: "Make loud, passive-aggressive sighs so they know you are mad.", score: 2}, {text: "Say nothing but seethe internally to avoid conflict.", score: 3}, {text: "Take a breath, pause, and politely inform them the line starts further back.", score: 4} ] },
+    { text: "2. (Work) Your boss repeatedly interrupts you during a meeting. You feel disrespected.", options: [ {text: "Interrupt them back to assert your dominance.", score: 1}, {text: "Stop talking completely and refuse to participate.", score: 2}, {text: "Complain to coworkers after the meeting.", score: 3}, {text: "Wait for the meeting to end and request a private, professional check-in about communication.", score: 4} ] },
+    { text: "3. (Family) Your partner brings up an old argument that you thought was resolved.", options: [ {text: "Yell at them for living in the past.", score: 1}, {text: "Walk out of the house and slam the door.", score: 2}, {text: "Tell them you are getting angry and need a 10-minute time-out before discussing it safely.", score: 4}, {text: "Sarcastically apologize just to shut them up.", score: 1} ] },
+    { text: "4. (Personal) A close friend ignores your text message, but you see them posting on social media.", options: [ {text: "Assume they are intentionally ignoring you and block their number.", score: 1}, {text: "Post a vague, angry status about fake friends.", score: 2}, {text: "Recognize your hostile assumption, realize they might just be busy, and wait.", score: 4}, {text: "Text them repeatedly until they answer.", score: 1} ] },
+    { text: "5. (Work) You are passed over for a promotion you felt you deserved.", options: [ {text: "Quit on the spot.", score: 1}, {text: "Perform your job poorly on purpose to show your frustration.", score: 2}, {text: "Pause, process your disappointment privately, and ask for constructive feedback on how to grow.", score: 4}, {text: "Accuse management of favoritism.", score: 1} ] },
+    { text: "6. (Family) Your teenager breaks a major household rule.", options: [ {text: "Scream at them to ensure they are intimidated into complying.", score: 1}, {text: "Ground them for a year without explaining why.", score: 2}, {text: "Address the behavior calmly, enforce the known consequence, and maintain boundaries.", score: 4}, {text: "Ignore it because you are too tired to argue.", score: 3} ] },
+    { text: "7. (Public) A stranger bumps into you hard on the street and glares at you.", options: [ {text: "Shove them back.", score: 1}, {text: "Yell an insult as they walk away.", score: 2}, {text: "Keep walking and safely disengage from the potential confrontation.", score: 4}, {text: "Stare them down to show you aren't afraid.", score: 1} ] },
+    { text: "8. (Work) A coworker is consistently late, forcing you to do their work.", options: [text: "Explode at them the next time they arrive late.", score: 1}, {text: "Leave their work undone so they fail.", score: 2}, {text: "Assertively communicate your boundaries to the coworker and escalate to a manager if needed.", score: 4}, {text: "Do the work but resent them silently.", score: 3} ] },
+    { text: "9. (Partner) You lost your temper yesterday and yelled at your partner.", options: [ {text: "Blame them by saying they provoked you.", score: 1}, {text: "Act like it didn't happen and hope they forget.", score: 2}, {text: "Take accountability, apologize without excuses, and explain what you will do differently.", score: 4}, {text: "Buy them a gift instead of apologizing.", score: 3} ] },
+    { text: "10. (Partner) A discussion about finances is rapidly escalating into a shouting match.", options: [ {text: "Shout louder so you can be heard.", score: 1}, {text: "Use past financial mistakes against them.", score: 2}, {text: "Recognize the escalation, state that the conversation is unproductive, and call a mutual time-out.", score: 4}, {text: "Give them the silent treatment for the rest of the week.", score: 2} ] },
+    { text: "11. (Personal) You are stuck in severe traffic and will be late to an important appointment.", options: [ {text: "Tailgate the car in front of you and honk aggressively.", score: 1}, {text: "Weave dangerously through lanes.", score: 1}, {text: "Accept the situation is out of your control, use deep breathing, and safely call to inform them you are late.", score: 4}, {text: "Punch your steering wheel in frustration.", score: 2} ] },
+    { text: "12. (Personal) You are exhausted, haven't eaten, and someone criticizes you.", options: [ {text: "Snap back at them because you are tired.", score: 1}, {text: "Cry and tell them they are ruining your life.", score: 2}, {text: "Recognize your physiological vulnerability (HALT) and delay the conversation until you've rested.", score: 4}, {text: "Agree with the criticism just to end the conversation.", score: 3} ] },
+    { text: "13. (Public) A cashier is rude to you while checking out.", options: [ {text: "Insult their intelligence.", score: 1}, {text: "Demand to see a manager and try to get them fired.", score: 2}, {text: "Realize their mood is not about you, finish the transaction calmly, and leave.", score: 4}, {text: "Throw your items down and storm out.", score: 2} ] },
+    { text: "14. (Work) A client unfairly blames you for a mistake they made.", options: [ {text: "Call them a liar.", score: 1}, {text: "Hang up on them.", score: 2}, {text: "Pause, replace defensive self-talk, and calmly present the documentation showing the correct steps.", score: 4}, {text: "Take the blame just to avoid conflict.", score: 3} ] },
+    { text: "15. (Partner) Your partner cancels date plans at the last minute.", options: [ {text: "Accuse them of not caring about you.", score: 1}, {text: "Cancel the next three dates as revenge.", score: 2}, {text: "Express your disappointment using 'I' statements without attacking their character.", score: 4}, {text: "Tell them it's totally fine when you are actually furious.", score: 3} ] },
+    { text: "16. (Public) Your neighbor is playing loud music late at night.", options: [ {text: "Go over and bang on their door aggressively.", score: 1}, {text: "Call the police immediately without trying to resolve it.", score: 2}, {text: "Wait until morning and politely ask them to keep it down at night.", score: 4}, {text: "Play your music louder to get back at them.", score: 1} ] },
+    { text: "17. (Family) A parent heavily criticizes your life choices during a visit.", options: [ {text: "Scream that they were terrible parents.", score: 1}, {text: "Leave without saying a word.", score: 2}, {text: "Set a clear boundary: 'I won't discuss this with you. If you continue, I will leave.'", score: 4}, {text: "Argue every point to prove them wrong.", score: 2} ] },
+    { text: "18. (Public) A police officer stops you and asks questions in a commanding tone.", options: [ {text: "Yell that they are harassing you.", score: 1}, {text: "Step toward them aggressively.", score: 1}, {text: "Recognize the authority interaction, keep your hands visible, and answer calmly to safely navigate the encounter.", score: 4}, {text: "Refuse to speak entirely.", score: 2} ] },
+    { text: "19. (Personal) During an argument, you notice your chest tightening and fists clenching.", options: [ {text: "Use this adrenaline to intimidate the other person.", score: 1}, {text: "Ignore the physical signs and keep arguing.", score: 2}, {text: "Recognize these as early warning signs of escalation and immediately take a time-out.", score: 4}, {text: "Hit a wall to release the tension.", score: 1} ] },
+    { text: "20. (Personal) Old friends invite you to a bar where you used to get into physical fights.", options: [ {text: "Go, but plan to fight anyone who looks at you wrong.", score: 1}, {text: "Go, assuming you have enough willpower not to fight.", score: 2}, {text: "Recognize this as a high-risk situation in your relapse prevention plan and decline the invitation.", score: 4}, {text: "Go but drink heavily to calm your nerves.", score: 1} ] }
+  ];
+
+  const POST_TEST_QUESTIONS = [
+    { text: "1. (Personal) Former drinking buddies invite you to a party where you know there will be heavy drinking and people you've fought with in the past.", options: [ {text: "Go to show them you aren't afraid.", score: 1}, {text: "Go, but promise yourself you'll just stay quiet.", score: 2}, {text: "Identify this as a high-risk trigger environment and politely decline.", score: 4}, {text: "Tell them off for inviting you.", score: 1} ] },
+    { text: "2. (Personal) During a heated discussion, you notice your breathing speed up and your jaw clench.", options: [text: "Use the anger to win the argument.", score: 1}, {text: "Push through the physical symptoms and raise your voice.", score: 2}, {text: "Acknowledge these physiological warning signs and initiate a de-escalation time-out.", score: 4}, {text: "Punch a table to let off steam.", score: 1} ] },
+    { text: "3. (Public) A security guard aggressively demands to know why you are in a specific area.", options: [ {text: "Get in their face and demand respect.", score: 1}, {text: "Swear at them and walk away.", score: 2}, {text: "Regulate your emotions, avoid hostile assumptions, and explain your presence calmly.", score: 4}, {text: "Ignore them completely and keep walking.", score: 2} ] },
+    { text: "4. (Family) A relative makes a passive-aggressive, snide remark about your parenting at a dinner.", options: [ {text: "Insult their children in retaliation.", score: 1}, {text: "Storm away from the table.", score: 2}, {text: "Assertively state your boundary regarding unsolicited advice without escalating to aggression.", score: 4}, {text: "Silently fume for the rest of the meal.", score: 3} ] },
+    { text: "5. (Public) A neighbor's dog won't stop barking late at night while you are trying to sleep.", options: [ {text: "Throw something over the fence at the dog.", score: 1}, {text: "Scream out your window at the neighbor.", score: 1}, {text: "Use earplugs for the night and address it constructively with the neighbor the next day.", score: 4}, {text: "Call animal control immediately without talking to them.", score: 2} ] },
+    { text: "6. (Partner) Your spouse completely forgets an important date you planned together.", options: [ {text: "Call them selfish and uncaring.", score: 1}, {text: "Give them the silent treatment for days.", score: 2}, {text: "Express your hurt feelings using clear 'I' statements without assigning malicious intent.", score: 4}, {text: "Pretend it doesn't bother you.", score: 3} ] },
+    { text: "7. (Work) A vendor falsely claims you failed to send them important paperwork.", options: [ {text: "Send a furious, unprofessional email.", score: 1}, {text: "Call and scream at their supervisor.", score: 1}, {text: "Check your hostility bias, pause, and forward the timestamped email calmly.", score: 4}, {text: "Accept the blame to keep the peace.", score: 3} ] },
+    { text: "8. (Public) A customer service rep rolls their eyes at your question.", options: [ {text: "Demand they apologize for their attitude.", score: 1}, {text: "Insult them loudly so others hear.", score: 1}, {text: "Recognize that their behavior is out of your control, ignore the provocation, and get your task done.", score: 4}, {text: "Complain about them loudly to the person behind you.", score: 2} ] },
+    { text: "9. (Personal) You are running on zero sleep, feeling stressed, and your car gets a flat tire.", options: [ {text: "Kick the car in a fit of rage.", score: 1}, {text: "Scream at the tow truck dispatcher.", score: 2}, {text: "Recognize your high emotional vulnerability (stress/fatigue), take deep breaths, and focus only on the next practical step.", score: 4}, {text: "Give up and walk home in traffic.", score: 2} ] },
+    { text: "10. (Personal) You get stuck in an unexpected detour making you late for work.", options: [ {text: "Drive recklessly on the shoulder to pass people.", score: 1}, {text: "Honk continuously.", score: 1}, {text: "Accept the delay, practice cognitive restructuring, and call your boss to inform them safely.", score: 4}, {text: "Curse out the construction workers.", score: 1} ] },
+    { text: "11. (Partner) A discussion about household chores quickly turns into yelling on both sides.", options: [ {text: "Throw an object to make them stop and listen.", score: 1}, {text: "Bring up every flaw they have.", score: 2}, {text: "Say, 'We are both angry. I am taking a 20-minute break before we continue.'", score: 4}, {text: "Leave the house and don't come back all night.", score: 2} ] },
+    { text: "12. (Partner) You lost your temper this morning and called a loved one a harsh name.", options: [ {text: "Tell them they made you do it.", score: 1}, {text: "Wait for them to apologize to you first.", score: 2}, {text: "Acknowledge the harm caused, take full accountability for your words, and make amends.", score: 4}, {text: "Act normal and assume they will get over it.", score: 2} ] },
+    { text: "13. (Work) A team member fails to do their part, making you look bad to the boss.", options: [ {text: "Publicly humiliate them in the team chat.", score: 1}, {text: "Sabotage their next project.", score: 2}, {text: "Address the issue directly and professionally with them, focusing on solutions, not insults.", score: 4}, {text: "Complain about them behind their back.", score: 2} ] },
+    { text: "14. (Public) Someone cuts you off aggressively while walking into a store.", options: [ {text: "Shoulder-check them as you pass.", score: 1}, {text: "Yell at them to watch where they are going.", score: 2}, {text: "Reframe the situation (e.g., 'They must be in a rush'), let it go, and proceed with your day.", score: 4}, {text: "Follow them to confront them.", score: 1} ] },
+    { text: "15. (Family) Your sibling breaks a promise to repay money they owe you.", options: [ {text: "Show up at their house and demand it aggressively.", score: 1}, {text: "Steal something of equal value from them.", score: 1}, {text: "Use assertive communication to express your frustration and set a firm financial boundary for the future.", score: 4}, {text: "Never speak to them again without explaining why.", score: 2} ] },
+    { text: "16. (Work) You receive an unfair negative performance review at work.", options: [ {text: "Tell your boss they are incompetent and quit.", score: 1}, {text: "Refuse to sign it and storm out.", score: 2}, {text: "Control your immediate impulse, ask for time to process the feedback, and schedule a follow-up to present your perspective calmly.", score: 4}, {text: "Cry and beg them to change it.", score: 2} ] },
+    { text: "17. (Personal) You ask an acquaintance for a favor and they leave your message on 'read'.", options: [ {text: "Send them a nasty message about how selfish they are.", score: 1}, {text: "Post passively aggressively about them online.", score: 2}, {text: "Challenge your cognitive distortion (jumping to conclusions) and accept they might be busy.", score: 4}, {text: "Keep texting question marks.", score: 1} ] },
+    { text: "18. (Family) Your partner brings up a past mistake you made 5 years ago.", options: [ {text: "Yell that they are obsessed and crazy.", score: 1}, {text: "Bring up something worse they did.", score: 2}, {text: "Recognize the bait, remain grounded, and state that you are only willing to discuss the present issue.", score: 4}, {text: "Mock them for holding a grudge.", score: 1} ] },
+    { text: "19. (Work) Your manager constantly micromanages and interrupts your work.", options: [ {text: "Tell them to back off aggressively.", score: 1}, {text: "Do the work wrong on purpose.", score: 2}, {text: "Request a meeting to assertively and respectfully discuss your working style and need for autonomy.", score: 4}, {text: "Gossip about how terrible they are.", score: 2} ] },
+    { text: "20. (Public) A driver cuts you off aggressively and slams on their brakes.", options: [ {text: "Tailgate them closely to teach them a lesson.", score: 1}, {text: "Pull up next to them and yell out the window.", score: 1}, {text: "Prioritize safety, slow down, practice deep breathing, and disengage from the road rage.", score: 4}, {text: "Throw something at their car.", score: 1} ] }
+  ];
+
+  // --- Handlers ---
+
+  const handleStartPreTest = () => {
+    setStage('pre_test');
+    setCurrentQuestion(0);
+    setPreTestScore(0);
+  };
+
+  const handleAnswer = (score) => {
+    if (stage === 'pre_test') {
+      setPreTestScore(prev => prev + score);
+      if (currentQuestion < PRE_TEST_QUESTIONS.length - 1) {
+        setCurrentQuestion(prev => prev + 1);
+      } else {
+        setStage('videos');
+        setCurrentQuestion(0);
+      }
+    } else if (stage === 'post_test') {
+      setPostTestScore(prev => prev + score);
+      if (currentQuestion < POST_TEST_QUESTIONS.length - 1) {
+        setCurrentQuestion(prev => prev + 1);
+      } else {
+        setStage('report');
+        setCurrentQuestion(0);
+      }
+    }
+  };
+
+  const handleStartPostTest = () => {
+    setStage('post_test');
+    setCurrentQuestion(0);
+    setPostTestScore(0);
+  };
+
+  // --- Views ---
+
+  const renderDashboard = () => (
+    <div className="p-8 max-w-4xl mx-auto bg-white shadow-lg rounded-xl mt-10">
+      <h1 className="text-3xl font-bold text-gray-800 border-b pb-4 mb-6">Anger Management Skills Training</h1>
+      <p className="text-gray-600 mb-6">
+        Welcome to your applied skills assessment. This system evaluates how you apply anger management knowledge in realistic situations across personal, family, workplace, and public domains.
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+          <h3 className="font-semibold text-blue-800">1. Pre-Assessment</h3>
+          <p className="text-sm text-gray-600 mt-2">Establish your baseline judgment in 20 realistic scenarios.</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="font-semibold text-gray-800">2. Curriculum Videos</h3>
+          <p className="text-sm text-gray-600 mt-2">Complete the 13 evidence-based learning modules.</p>
+        </div>
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="font-semibold text-gray-800">3. Post-Assessment</h3>
+          <p className="text-sm text-gray-600 mt-2">Demonstrate your new skills and receive your competency report.</p>
+        </div>
+      </div>
+      <button 
+        onClick={handleStartPreTest}
+        className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition w-full md:w-auto"
+      >
+        Begin Initial Assessment
+      </button>
+    </div>
+  );
+
+  const renderTest = (isPreTest) => {
+    const questionList = isPreTest ? PRE_TEST_QUESTIONS : POST_TEST_QUESTIONS;
+    const currentQ = questionList[currentQuestion];
+    
+    return (
+      <div className="p-8 max-w-4xl mx-auto bg-white shadow-lg rounded-xl mt-10">
+        <div className="flex justify-between items-center mb-6 border-b pb-4">
+          <h2 className="text-2xl font-bold text-gray-800">
+            {isPreTest ? 'Baseline Pre-Assessment' : 'Final Post-Assessment'}
+          </h2>
+          <span className="bg-gray-200 text-gray-700 text-sm px-3 py-1 rounded font-bold">
+            Question {currentQuestion + 1} of 20
+          </span>
+        </div>
+        
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-6">
+          <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{width: `${((currentQuestion) / 20) * 100}%`}}></div>
+        </div>
+
+        <p className="text-lg text-gray-700 mb-6 bg-gray-50 p-6 rounded border-l-4 border-gray-400 font-medium">
+          {currentQ.text}
+        </p>
+        
+        <div className="space-y-3">
+          {currentQ.options.map((opt, idx) => (
+            <button 
+              key={idx}
+              onClick={() => handleAnswer(opt.score)}
+              className="w-full text-left p-4 border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition text-gray-700"
+            >
+              {opt.text}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderVideoInstruction = () => (
+    <div className="p-8 max-w-4xl mx-auto bg-white shadow-lg rounded-xl mt-10">
+      <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+        <h2 className="text-xl font-bold text-green-800">Pre-Assessment Complete!</h2>
+        <p className="text-sm text-green-700 mt-1">Your initial score has been recorded and hidden. It will be compared against your final score.</p>
+      </div>
+
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Required Video Curriculum</h2>
+      <p className="text-gray-600 mb-6">Please watch the following 13 educational modules to build your anger management and conflict resolution skills before attempting the final assessment.</p>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8 max-h-64 overflow-y-auto p-4 border rounded bg-gray-50">
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 1: Understanding Anger</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 2: Recognizing Triggers</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 3: Emotional Regulation</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 4: Cognitive Restructuring</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 5: Impulse Control</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 6: Communication & Boundaries</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 7: De-escalation</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 8: Empathy & Perspective</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 9: Accountability</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 10: Relationship Anger</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 11: Behavioral Planning</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 12: Relapse Prevention</span></div>
+        <div className="flex items-center space-x-2 text-gray-700"><span className="text-blue-500">▶</span><span>Module 13: Course Review</span></div>
+      </div>
+
+      <button 
+        onClick={handleStartPostTest}
+        className="bg-purple-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-purple-700 transition w-full"
+      >
+        I have completed the videos. Begin Post-Assessment.
+      </button>
+    </div>
+  );
+
+  const renderReport = () => {
+    const maxScore = 20 * 4; // 80 points total
+    const prePercent = Math.round((preTestScore / maxScore) * 100);
+    const postPercent = Math.round((postTestScore / maxScore) * 100);
+    const improvement = postPercent - prePercent;
+
+    return (
+      <div className="p-8 max-w-4xl mx-auto bg-white shadow-lg rounded-xl mt-10">
+        <div className="flex justify-between items-center border-b pb-4 mb-6">
+          <h2 className="text-3xl font-bold text-gray-800">Final Competency Report</h2>
+          <span className="text-gray-500">Participant ID: #8492</span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-3 uppercase tracking-wider text-sm">Assessment Metrics</h3>
+            
+            <div className="mb-4">
+              <div className="flex justify-between mb-1">
+                <span className="font-medium text-gray-500">Pre-Assessment (Baseline)</span>
+                <span className="text-sm font-bold text-gray-500">{preTestScore} / {maxScore} ({prePercent}%)</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="h-2 rounded-full bg-gray-400" style={{width: `${prePercent}%`}}></div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex justify-between mb-1">
+                <span className="font-medium text-gray-800">Post-Assessment (Final)</span>
+                <span className="text-sm font-bold text-blue-600">{postTestScore} / {maxScore} ({postPercent}%)</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="h-3 rounded-full bg-blue-600" style={{width: `${postPercent}%`}}></div>
+              </div>
+            </div>
+            
+            {improvement > 0 && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded text-green-800 text-sm font-medium">
+                ↳ You demonstrated a +{improvement}% improvement in applied conflict resolution and situational judgment!
+              </div>
+            )}
+          </div>
+          
+          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <h3 className="font-semibold text-gray-700 mb-3 uppercase tracking-wider text-sm">Behavioral Analysis</h3>
+            <p className="text-sm text-gray-600 mb-4">Based on your Situational Judgment Test results, the system has logged the following:</p>
+            <ul className="list-disc pl-5 text-sm text-gray-700 space-y-2">
+              {postPercent >= 80 ? (
+                <li><strong>Proficient:</strong> You consistently demonstrated safe disengagement, cognitive restructuring, and boundary setting.</li>
+              ) : postPercent >= 60 ? (
+                <li><strong>Competent:</strong> You recognize escalation triggers but occasionally struggle with impulsive responses in high-stress contexts.</li>
+              ) : (
+                <li><strong>Emerging:</strong> You require further practice in emotional regulation and avoiding hostile attribution bias.</li>
+              )}
+              <li><strong>Action Step:</strong> Review Module 12 (Relapse Prevention) and maintain your personal anger management plan.</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="text-xs text-gray-400 text-center border-t pt-4">
+          Disclaimer: This assessment evaluates applied skills in an educational context. It is not a clinical diagnostic tool.
+        </div>
+        <div className="mt-4 text-center">
+          <button onClick={() => setStage('dashboard')} className="text-blue-600 hover:underline">
+            Return to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100 font-sans text-gray-900 pb-10">
+      {stage === 'dashboard' && renderDashboard()}
+      {stage === 'pre_test' && renderTest(true)}
+      {stage === 'videos' && renderVideoInstruction()}
+      {stage === 'post_test' && renderTest(false)}
+      {stage === 'report' && renderReport()}
+    </div>
+  );
+};
+
+export default AngerManagementSystem;
